@@ -1,9 +1,12 @@
 package com.horizonzy;
 
 
-import com.sun.xml.internal.fastinfoset.algorithm.IEEE754FloatingPointEncodingAlgorithm;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 public class Selector {
 
@@ -25,13 +28,31 @@ public class Selector {
     }
 
     public static InternalSelector parse(String selector) {
-        Lexer lexer = new Lexer(selector, 0);
+        Lexer lexer = new Lexer(selector);
         Parser parser = new Parser(lexer);
         InternalSelector items = parser.parse();
         items.sort();
         return items;
     }
 
+    public static InternalSelector everyThing() {
+        return new InternalSelector();
+    }
+
+    public static InternalSelector selectorFromValidatedSet(Map<String, String> label) {
+        if (label == null || label.size() == 0) {
+            return new InternalSelector();
+        }
+        InternalSelector internalSelector = new InternalSelector();
+        for (Entry<String, String> entry : label.entrySet()) {
+            Requirement requirement = Requirement.newRequirement(entry.getKey(), Operator.Equals,
+                    Collections.singletonList(entry.getValue()));
+            internalSelector.addRequire(requirement);
+        }
+        internalSelector.sort();
+
+        return internalSelector;
+    }
 
     public static boolean isSpecialSymbol(byte ch) {
         if (ch == '=') {
@@ -72,8 +93,17 @@ public class Selector {
         Validation.isQualifiedName(key);
     }
 
-    public static void validateLabelValue(String key, String value) {
+    public static void validateLabelValue(String value) {
         Validation.isValidLabelValue(value);
+    }
+
+    public static List<String> safeSort(List<String> in) {
+        if (in == null) {
+            return null;
+        }
+        List<String> target = new ArrayList<>(in);
+        Collections.sort(target);
+        return target;
     }
 
 }

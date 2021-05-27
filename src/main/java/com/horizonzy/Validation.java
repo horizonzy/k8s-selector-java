@@ -78,7 +78,7 @@ public class Validation {
         if (value.length() > DNS1123SubdomainMaxLength) {
             throw new IllegalArgumentException(maxLenError(DNS1123SubdomainMaxLength));
         }
-        if (dns1123SubdomainRegexp.matcher(value).matches()) {
+        if (!dns1123SubdomainRegexp.matcher(value).matches()) {
             throw new IllegalArgumentException(
                     regexError(dns1123SubdomainErrorMsg, dns1123SubdomainFmt, "example.com"));
         }

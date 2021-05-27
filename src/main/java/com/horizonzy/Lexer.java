@@ -3,19 +3,24 @@ package com.horizonzy;
 
 public class Lexer {
 
-    private String s;
+    private byte[] bytes;
 
     private int pos;
 
+    public Lexer(String s) {
+        this(s, 0);
+    }
+
     public Lexer(String s, int pos) {
-        this.s = s;
+        this.bytes = s.getBytes();
         this.pos = pos;
     }
 
     public byte read() {
         byte b = 0;
-        if (this.pos < s.length()) {
-            b = (byte) s.charAt(pos);
+        if (this.pos < bytes.length) {
+            b = bytes[pos];
+            pos++;
         }
         return b;
     }
@@ -25,7 +30,7 @@ public class Lexer {
     }
 
     public Tuple<Integer, String> scanIDOrKeyword() {
-        byte[] buffer = new byte[s.length()];
+        byte[] buffer = new byte[bytes.length];
         int index = 0;
         for (; ; ) {
             byte ch = read();
@@ -49,7 +54,7 @@ public class Lexer {
 
     public Tuple<Integer, String> scanSpecialSymbol() {
         ScannedItem lastScannedItem = new ScannedItem();
-        byte[] buffer = new byte[s.length()];
+        byte[] buffer = new byte[bytes.length];
         int index = 0;
 
         for (; ; ) {
@@ -66,6 +71,9 @@ public class Lexer {
                     unread();
                     break;
                 }
+            } else {
+                unread();
+                break;
             }
         }
         if (lastScannedItem.getToken() == null) {
