@@ -57,6 +57,10 @@ public class Parser {
         return new Tuple<>(token, lit);
     }
 
+    public void incPosition() {
+        position++;
+    }
+
     public Tuple<Integer, String> consume(Integer context) {
         position++;
         Integer token = scannedItems.get(position - 1).getToken();
@@ -218,7 +222,7 @@ public class Parser {
             }
             return s;
         } else if (Token.ClosedParToken == token) {
-            consume(ParseContext.Values);
+            incPosition();
             return new HashSet<>(Collections.singletonList(""));
         } else {
             throw new IllegalArgumentException(
@@ -259,7 +263,7 @@ public class Parser {
                     return result;
                 }
                 if (Token.CommaToken == token2) {
-                    consume(ParseContext.Values);
+                    incPosition();
                     result.add("");
                 }
             } else {
@@ -274,13 +278,12 @@ public class Parser {
 
         Tuple<Integer, String> tuple = lookAhead(ParseContext.Values);
         Integer token = tuple.getKey();
+        String lit = tuple.getValue();
         if (Token.EndOfStringToken == token || Token.CommaToken == token) {
             result.add("");
             return result;
         }
-        Tuple<Integer, String> tuple2 = consume(ParseContext.Values);
-        token = tuple2.getKey();
-        String lit = tuple2.getValue();
+        incPosition();
         if (Token.IdentifierToken == token) {
             result.add(lit);
             return result;
