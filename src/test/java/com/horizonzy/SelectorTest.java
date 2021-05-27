@@ -55,6 +55,14 @@ public class SelectorTest {
         Assert.assertEquals(s1.toString(), s2.toString());
     }
 
+    @Test
+    public void testEveryThing() {
+        Map<String, String> label = new HashMap<>();
+        label.put("x", "y");
+        Assert.assertTrue(Selector.everyThing().matches(label));
+
+        Assert.assertTrue(Selector.everyThing().empty());
+    }
 
     @Test
     public void testSelectorMatches() {
@@ -185,6 +193,50 @@ public class SelectorTest {
         Assert.assertFalse(internalSelector.matches(labels));
 
     }
+
+    @Test
+    public void testSetMatches() {
+        Map<String, String> label = new HashMap<>();
+        label.put("foo", "bar");
+        label.put("baz", "blah");
+
+        {
+            Map<String, String> origin = new HashMap<>();
+            expectMatchDirect(origin, label);
+        }
+
+        {
+            Map<String, String> origin = new HashMap<>();
+            origin.put("foo", "bar");
+            expectMatchDirect(origin, label);
+        }
+
+        {
+            Map<String, String> origin = new HashMap<>();
+            origin.put("baz", "blah");
+            expectMatchDirect(origin, label);
+        }
+
+        {
+            Map<String, String> origin = new HashMap<>();
+            origin.put("foo", "bar");
+            origin.put("baz", "blah");
+            expectMatchDirect(origin, label);
+        }
+    }
+
+    private void expectMatchDirect(Map<String, String> selectorMap, Map<String, String> label) {
+        Assert.assertTrue(Selector.selectorFromValidatedSet(selectorMap).matches(label));
+    }
+
+    @Test
+    public void testNilMapIsValid() {
+        InternalSelector internalSelector = Selector.selectorFromValidatedSet(null);
+        Assert.assertNotNull(internalSelector);
+        Assert.assertTrue(internalSelector.empty());
+    }
+
+    // TODO: 2021/5/28 other unit test complete.
 
 
 }

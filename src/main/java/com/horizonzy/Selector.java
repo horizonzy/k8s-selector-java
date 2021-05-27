@@ -2,8 +2,10 @@ package com.horizonzy;
 
 
 import com.sun.xml.internal.fastinfoset.algorithm.IEEE754FloatingPointEncodingAlgorithm;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 public class Selector {
 
@@ -32,6 +34,24 @@ public class Selector {
         return items;
     }
 
+    public static InternalSelector everyThing() {
+        return new InternalSelector();
+    }
+
+    public static InternalSelector selectorFromValidatedSet(Map<String, String> label) {
+        if (label == null || label.size() == 0) {
+            return new InternalSelector();
+        }
+        InternalSelector internalSelector = new InternalSelector();
+        for (Entry<String, String> entry : label.entrySet()) {
+            Requirement requirement = new Requirement(entry.getKey(), Operator.Equals,
+                    Collections.singletonList(entry.getValue()));
+            internalSelector.addRequire(requirement);
+        }
+        internalSelector.sort();
+
+        return internalSelector;
+    }
 
     public static boolean isSpecialSymbol(byte ch) {
         if (ch == '=') {

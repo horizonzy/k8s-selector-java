@@ -29,6 +29,10 @@ public class InternalSelector {
         return true;
     }
 
+    public boolean empty() {
+        return requirementList == null || requirementList.size() == 0;
+    }
+
     @Override
     public String toString() {
         return "InternalSelector{" +
