@@ -16,6 +16,7 @@ public class Lexer {
         byte b = 0;
         if (this.pos < s.length()) {
             b = (byte) s.charAt(pos);
+            pos++;
         }
         return b;
     }
@@ -66,6 +67,9 @@ public class Lexer {
                     unread();
                     break;
                 }
+            } else {
+                unread();
+                break;
             }
         }
         if (lastScannedItem.getToken() == null) {

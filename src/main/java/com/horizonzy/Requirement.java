@@ -40,6 +40,7 @@ public class Requirement {
                     throw new IllegalArgumentException(
                             "for 'in', 'notin' operators, values set can't be empty");
                 }
+                break;
             case Operator.Equals:
             case Operator.DoubleEquals:
             case Operator.NotEquals:
@@ -47,12 +48,14 @@ public class Requirement {
                     throw new IllegalArgumentException(
                             "exact-match compatibility requires one single value");
                 }
+                break;
             case Operator.Exists:
             case Operator.DoesNotExist:
                 if (vals.size() != 0) {
                     throw new IllegalArgumentException(
                             "values set must be empty for exists and does not exist");
                 }
+                break;
             case Operator.GreaterThan:
             case Operator.LessThan:
                 if (vals.size() != 1) {
