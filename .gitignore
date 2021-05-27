@@ -6,4 +6,3 @@ target
 .idea
 /logs
 *.iml
-/skynet-logs
