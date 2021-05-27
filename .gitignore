@@ -1,0 +1,9 @@
+# Except this file !.gitignore
+.classpath
+.project
+.settings
+target
+.idea
+/logs
+*.iml
+/skynet-logs
