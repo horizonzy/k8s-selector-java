@@ -14,7 +14,7 @@ public class Requirement {
     private List<String> strValues;
 
     private Requirement() {
-
+        this("", "", new ArrayList<>());
     }
 
     private Requirement(String key, String operator, List<String> strValues) {
@@ -62,13 +62,16 @@ public class Requirement {
                 if (val3 == null) {
                     return false;
                 }
-                Integer lsValue = null;
+                Integer lsValue;
                 try {
                     lsValue = Integer.parseInt(val3);
                 } catch (NumberFormatException e) {
-                    throw new IllegalArgumentException(
-                            String.format("ParseInt failed for value %s in label %s", val3, labels),
-                            e);
+
+                    //log warn
+//                    throw new IllegalArgumentException(
+//                            String.format("ParseInt failed for value %s in label %s", val3, labels),
+//                            e);
+                    return false;
                 }
                 if (strValues.size() != 1) {
                     throw new IllegalArgumentException(String.format(
@@ -80,9 +83,11 @@ public class Requirement {
                     try {
                         rValue = Integer.parseInt(strValue);
                     } catch (NumberFormatException e) {
-                        throw new IllegalArgumentException(String.format(
-                                "ParseInt failed for value %s in requirement %s, for 'Gt', 'Lt' operators, the value must be an integer",
-                                strValue, this));
+                        //log warn
+//                        throw new IllegalArgumentException(String.format(
+//                                "ParseInt failed for value %s in requirement %s, for 'Gt', 'Lt' operators, the value must be an integer",
+//                                strValue, this));
+                        return false;
                     }
                 }
                 return (Operator.GreaterThan.equals(operator) && lsValue > rValue) || (
@@ -154,50 +159,42 @@ public class Requirement {
         if (Operator.DoesNotExist.equals(operator)) {
             builder.append("!");
         }
-        if (key != null) {
-            builder.append(key);
-        }
+        builder.append(key);
 
-        if (operator != null) {
-            switch (operator) {
-                case Operator.Equals:
-                    builder.append("=");
-                    break;
-                case Operator.DoubleEquals:
-                    builder.append("==");
-                    break;
-                case Operator.NotEquals:
-                    builder.append("!=");
-                    break;
-                case Operator.In:
-                    builder.append(" in ");
-                    break;
-                case Operator.NotIn:
-                    builder.append(" notin ");
-                    break;
-                case Operator.GreaterThan:
-                    builder.append(">");
-                    break;
-                case Operator.LessThan:
-                    builder.append("<");
-                    break;
-                case Operator.Exists:
-                case Operator.DoesNotExist:
-                    return builder.toString();
-            }
+        switch (operator) {
+            case Operator.Equals:
+                builder.append("=");
+                break;
+            case Operator.DoubleEquals:
+                builder.append("==");
+                break;
+            case Operator.NotEquals:
+                builder.append("!=");
+                break;
+            case Operator.In:
+                builder.append(" in ");
+                break;
+            case Operator.NotIn:
+                builder.append(" notin ");
+                break;
+            case Operator.GreaterThan:
+                builder.append(">");
+                break;
+            case Operator.LessThan:
+                builder.append("<");
+                break;
+            case Operator.Exists:
+            case Operator.DoesNotExist:
+                return builder.toString();
         }
 
         if (Operator.In.equals(operator) || Operator.NotIn.equals(operator)) {
             builder.append("(");
         }
-        if (strValues != null) {
-            if (strValues.size() == 1) {
-                builder.append(strValues.get(0));
-            } else {
-                List<String> tmp = new ArrayList<>(strValues);
-                Collections.sort(tmp);
-                builder.append(String.join(",", tmp));
-            }
+        if (strValues.size() == 1) {
+            builder.append(strValues.get(0));
+        } else {
+            builder.append(String.join(",", Selector.safeSort(strValues)));
         }
 
         if (Operator.In.equals(operator) || Operator.NotIn.equals(operator)) {

@@ -494,12 +494,8 @@ public class SelectorTest {
             InternalSelector internalSelector = new InternalSelector();
             internalSelector
                     .addRequire(getRequirement("x", Operator.In, Arrays.asList("abc", "def")));
-
-            Constructor<Requirement> constructor = Requirement.class.getDeclaredConstructor();
-            constructor.setAccessible(true);
-            Requirement emptyRequirement = constructor.newInstance();
-            internalSelector.addRequire(emptyRequirement); // adding empty req for the trailing ','
-
+            internalSelector
+                    .addRequire(getEmptyRequirement()); // adding empty req for the trailing ','
             testcases.add(new Triple<>(internalSelector, "x in (abc,def),", false));
         }
         {
@@ -551,10 +547,395 @@ public class SelectorTest {
         return Requirement.newRequirement(key, operator, values);
     }
 
-    @Test
-    public void testRequirementSelectorMatching() {
-
+    private Requirement getEmptyRequirement()
+            throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+        Constructor<Requirement> constructor = Requirement.class.getDeclaredConstructor();
+        constructor.setAccessible(true);
+        return constructor.newInstance();
     }
+
+    @Test
+    public void testRequirementSelectorMatching()
+            throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        List<Triple<Map<String, String>, InternalSelector, Boolean>> testcases = new ArrayList<>();
+        {
+            Map<String, String> label = new HashMap<>();
+            label.put("x", "foo");
+            label.put("y", "baz");
+
+            InternalSelector internalSelector = new InternalSelector();
+            internalSelector.addRequire(getEmptyRequirement());
+            testcases.add(new Triple<>(label, internalSelector, false));
+        }
+        {
+            Map<String, String> label = new HashMap<>();
+            label.put("x", "foo");
+            label.put("y", "baz");
+
+            InternalSelector internalSelector = new InternalSelector();
+            internalSelector
+                    .addRequire(getRequirement("x", Operator.In, Collections.singletonList("foo")));
+            internalSelector.addRequire(
+                    getRequirement("y", Operator.NotIn, Collections.singletonList("alpha")));
+            testcases.add(new Triple<>(label, internalSelector, true));
+        }
+        {
+            Map<String, String> label = new HashMap<>();
+            label.put("x", "foo");
+            label.put("y", "baz");
+
+            InternalSelector internalSelector = new InternalSelector();
+            internalSelector
+                    .addRequire(getRequirement("x", Operator.In, Collections.singletonList("foo")));
+            internalSelector.addRequire(
+                    getRequirement("y", Operator.In, Collections.singletonList("alpha")));
+            testcases.add(new Triple<>(label, internalSelector, false));
+        }
+        {
+            Map<String, String> label = new HashMap<>();
+            label.put("y", "");
+
+            InternalSelector internalSelector = new InternalSelector();
+            internalSelector
+                    .addRequire(getRequirement("x", Operator.NotIn, Collections.singletonList("")));
+            internalSelector.addRequire(getRequirement("y", Operator.Exists, null));
+            testcases.add(new Triple<>(label, internalSelector, true));
+        }
+        {
+            Map<String, String> label = new HashMap<>();
+            label.put("y", "");
+
+            InternalSelector internalSelector = new InternalSelector();
+            internalSelector.addRequire(getRequirement("x", Operator.DoesNotExist, null));
+            internalSelector.addRequire(getRequirement("y", Operator.Exists, null));
+            testcases.add(new Triple<>(label, internalSelector, true));
+        }
+        {
+            Map<String, String> label = new HashMap<>();
+            label.put("y", "");
+
+            InternalSelector internalSelector = new InternalSelector();
+            internalSelector
+                    .addRequire(getRequirement("x", Operator.NotIn, Collections.singletonList("")));
+            internalSelector.addRequire(getRequirement("y", Operator.DoesNotExist, null));
+            testcases.add(new Triple<>(label, internalSelector, false));
+        }
+        {
+            Map<String, String> label = new HashMap<>();
+            label.put("y", "baz");
+
+            InternalSelector internalSelector = new InternalSelector();
+            internalSelector
+                    .addRequire(getRequirement("x", Operator.In, Collections.singletonList("")));
+            testcases.add(new Triple<>(label, internalSelector, false));
+        }
+        {
+            Map<String, String> label = new HashMap<>();
+            label.put("z", "2");
+
+            InternalSelector internalSelector = new InternalSelector();
+            internalSelector.addRequire(
+                    getRequirement("z", Operator.GreaterThan, Collections.singletonList("1")));
+            testcases.add(new Triple<>(label, internalSelector, true));
+        }
+        {
+            Map<String, String> label = new HashMap<>();
+            label.put("z", "v2");
+
+            InternalSelector internalSelector = new InternalSelector();
+            internalSelector.addRequire(
+                    getRequirement("z", Operator.GreaterThan, Collections.singletonList("1")));
+            testcases.add(new Triple<>(label, internalSelector, false));
+        }
+
+        for (Triple<Map<String, String>, InternalSelector, Boolean> testcase : testcases) {
+            Assert.assertEquals(testcase.getSecond().matches(testcase.getFirst()),
+                    testcase.getThird());
+        }
+    }
+
+    @Test
+    public void testSetSelectorParser() {
+        List<Fourth<String, InternalSelector, Boolean, Boolean>> testcases = new ArrayList<>();
+        {
+            testcases.add(new Fourth<>("", new InternalSelector(), true, true));
+        }
+        {
+            InternalSelector internalSelector = new InternalSelector();
+            internalSelector.addRequire(getRequirement("x", Operator.Exists, null));
+            testcases.add(new Fourth<>("\rx", internalSelector, true, true));
+        }
+        {
+            InternalSelector internalSelector = new InternalSelector();
+            internalSelector.addRequire(
+                    getRequirement("this-is-a-dns.domain.com/key-with-dash", Operator.Exists,
+                            null));
+            testcases.add(new Fourth<>("this-is-a-dns.domain.com/key-with-dash", internalSelector,
+                    true, true));
+        }
+        {
+            InternalSelector internalSelector = new InternalSelector();
+            internalSelector.addRequire(
+                    getRequirement("this-is-another-dns.domain.com/key-with-dash", Operator.In,
+                            Arrays.asList("so", "what")));
+            testcases.add(new Fourth<>("this-is-another-dns.domain.com/key-with-dash in (so,what)",
+                    internalSelector, true, true));
+        }
+        {
+            InternalSelector internalSelector = new InternalSelector();
+            internalSelector.addRequire(getRequirement("0.1.2.domain/99", Operator.NotIn,
+                    Arrays.asList("10.10.100.1", "tick.tack.clock")));
+            testcases.add(new Fourth<>("0.1.2.domain/99 notin (10.10.100.1, tick.tack.clock)",
+                    internalSelector, true, true));
+        }
+        {
+            InternalSelector internalSelector = new InternalSelector();
+            internalSelector.addRequire(
+                    getRequirement("foo", Operator.In, Collections.singletonList("abc")));
+            testcases.add(new Fourth<>("foo  in	 (abc)", internalSelector, true, true));
+        }
+        {
+            InternalSelector internalSelector = new InternalSelector();
+            internalSelector.addRequire(
+                    getRequirement("x", Operator.NotIn, Collections.singletonList("abc")));
+            testcases.add(new Fourth<>("x notin\n (abc)", internalSelector, true, true));
+        }
+        {
+            InternalSelector internalSelector = new InternalSelector();
+            internalSelector
+                    .addRequire(getRequirement("x", Operator.NotIn, Arrays.asList("abc", "def")));
+            testcases
+                    .add(new Fourth<>("x  notin	\t	(abc,def)", internalSelector, true, true));
+        }
+        {
+            InternalSelector internalSelector = new InternalSelector();
+            internalSelector
+                    .addRequire(getRequirement("x", Operator.In, Arrays.asList("abc", "def")));
+            testcases.add(new Fourth<>("x in (abc,def)", internalSelector, true, true));
+        }
+        {
+            InternalSelector internalSelector = new InternalSelector();
+            internalSelector.addRequire(getRequirement("x", Operator.In, Arrays.asList("abc", "")));
+            testcases.add(new Fourth<>("x in (abc,)", internalSelector, true, true));
+        }
+        {
+            InternalSelector internalSelector = new InternalSelector();
+            internalSelector
+                    .addRequire(getRequirement("x", Operator.In, Collections.singletonList("")));
+            testcases.add(new Fourth<>("x in ()", internalSelector, true, true));
+        }
+        {
+            InternalSelector internalSelector = new InternalSelector();
+            internalSelector.addRequire(getRequirement("bar", Operator.Exists, null));
+            internalSelector.addRequire(getRequirement("w", Operator.Exists, null));
+            internalSelector.addRequire(
+                    getRequirement("x", Operator.NotIn, Arrays.asList("abc", "", "def")));
+            internalSelector
+                    .addRequire(getRequirement("z", Operator.In, Collections.singletonList("")));
+            testcases.add(new Fourth<>("x notin (abc,,def),bar,z in (),w", internalSelector, true,
+                    true));
+        }
+        {
+            InternalSelector internalSelector = new InternalSelector();
+            internalSelector
+                    .addRequire(getRequirement("y", Operator.In, Collections.singletonList("a")));
+            internalSelector.addRequire(getRequirement("x", Operator.Exists, null));
+            testcases.add(new Fourth<>("x,y in (a)", internalSelector, false, true));
+        }
+        {
+            InternalSelector internalSelector = new InternalSelector();
+            internalSelector.addRequire(
+                    getRequirement("x", Operator.Equals, Collections.singletonList("a")));
+            testcases.add(new Fourth<>("x=a", internalSelector, true, true));
+        }
+        {
+            InternalSelector internalSelector = new InternalSelector();
+            internalSelector.addRequire(
+                    getRequirement("x", Operator.GreaterThan, Collections.singletonList("1")));
+            testcases.add(new Fourth<>("x>1", internalSelector, true, true));
+        }
+        {
+            InternalSelector internalSelector = new InternalSelector();
+            internalSelector.addRequire(
+                    getRequirement("x", Operator.LessThan, Collections.singletonList("7")));
+            testcases.add(new Fourth<>("x<7", internalSelector, true, true));
+        }
+        {
+            InternalSelector internalSelector = new InternalSelector();
+            internalSelector.addRequire(
+                    getRequirement("x", Operator.Equals, Collections.singletonList("a")));
+            internalSelector.addRequire(
+                    getRequirement("y", Operator.NotEquals, Collections.singletonList("b")));
+            testcases.add(new Fourth<>("x=a,y!=b", internalSelector, true, true));
+        }
+        {
+            InternalSelector internalSelector = new InternalSelector();
+            internalSelector.addRequire(
+                    getRequirement("x", Operator.Equals, Collections.singletonList("a")));
+            internalSelector.addRequire(
+                    getRequirement("y", Operator.NotEquals, Collections.singletonList("b")));
+            internalSelector
+                    .addRequire(getRequirement("z", Operator.In, Arrays.asList("h", "i", "j")));
+            testcases.add(new Fourth<>("x=a,y!=b,z in (h,i,j)", internalSelector, true, true));
+        }
+        {
+            testcases.add(new Fourth<>("x=a||y=b", new InternalSelector(), false, false));
+        }
+        {
+            testcases.add(new Fourth<>("x,,y", null, true, false));
+        }
+        {
+            testcases.add(new Fourth<>(",x,y", null, true, false));
+        }
+        {
+            testcases.add(new Fourth<>("x nott in (y)", null, true, false));
+        }
+        {
+            InternalSelector internalSelector = new InternalSelector();
+            internalSelector
+                    .addRequire(getRequirement("x", Operator.NotIn, Collections.singletonList("")));
+            testcases.add(new Fourth<>("x notin ( )", internalSelector, true, true));
+        }
+        {
+            InternalSelector internalSelector = new InternalSelector();
+            internalSelector
+                    .addRequire(getRequirement("x", Operator.NotIn, Arrays.asList("", "a")));
+            testcases.add(new Fourth<>("x notin (, a)", internalSelector, true, true));
+        }
+        {
+            testcases.add(new Fourth<>("a in (xyz),", null, true, false));
+        }
+        {
+            testcases.add(new Fourth<>("a in (xyz)b notin ()", null, true, false));
+        }
+        {
+            InternalSelector internalSelector = new InternalSelector();
+            internalSelector.addRequire(getRequirement("a", Operator.Exists, null));
+            testcases.add(new Fourth<>("a ", internalSelector, true, true));
+        }
+        {
+            InternalSelector internalSelector = new InternalSelector();
+            internalSelector.addRequire(
+                    getRequirement("a", Operator.In, Arrays.asList("in", "notin", "x", "y", "z")));
+            testcases.add(new Fourth<>("a in (x,y,notin, z,in)", internalSelector, true, true));
+        }
+        {
+            testcases.add(new Fourth<>("a in (xyz abc)", null, false, false));
+        }
+        {
+            testcases.add(new Fourth<>("a notin(", null, true, false));
+        }
+        {
+            testcases.add(new Fourth<>("a (", null, false, false));
+        }
+        {
+            testcases.add(new Fourth<>("(", null, false, false));
+        }
+
+        for (Fourth<String, InternalSelector, Boolean, Boolean> testcase : testcases) {
+            boolean isException = false;
+            InternalSelector selector = null;
+            try {
+                selector = Selector.parse(testcase.getFirst());
+            } catch (IllegalArgumentException e) {
+                isException = true;
+            }
+            if (isException) {
+                Assert.assertFalse(testcase.getFourth());
+            } else {
+                Assert.assertTrue(testcase.getFourth());
+                if (testcase.getThird()) {
+                    Assert.assertEquals(selector.toString(), testcase.getSecond().toString());
+                }
+            }
+        }
+    }
+
+    private static class AddTestEntity {
+
+        private String name;
+        private InternalSelector selector;
+        private String key;
+        private String operator;
+        private List<String> values;
+        private InternalSelector refSelector;
+
+        public AddTestEntity(String name, InternalSelector selector, String key, String operator,
+                List<String> values, InternalSelector refSelector) {
+            this.name = name;
+            this.selector = selector;
+            this.key = key;
+            this.operator = operator;
+            this.values = values;
+            this.refSelector = refSelector;
+        }
+    }
+
+    @Test
+    public void testAdd() {
+        List<AddTestEntity> testcases = new ArrayList<>();
+
+        {
+            InternalSelector selector = new InternalSelector();
+
+            InternalSelector refSelector = new InternalSelector();
+            refSelector.addRequire(
+                    getRequirement("key", Operator.In, Collections.singletonList("value")));
+
+            testcases.add(new AddTestEntity("keyInOperator", selector, "key", Operator.In,
+                    Collections.singletonList("value"), refSelector));
+        }
+        {
+            InternalSelector selector = new InternalSelector();
+            selector.addRequire(
+                    getRequirement("key", Operator.In, Collections.singletonList("value")));
+
+            InternalSelector refSelector = new InternalSelector();
+            refSelector.addRequire(
+                    getRequirement("key", Operator.In, Collections.singletonList("value")));
+            refSelector.addRequire(
+                    getRequirement("key2", Operator.Equals, Collections.singletonList("value2")));
+
+            testcases.add(new AddTestEntity("keyEqualsOperator", selector, "key2", Operator.Equals,
+                    Collections.singletonList("value2"), refSelector));
+        }
+        for (AddTestEntity testcase : testcases) {
+            Requirement requirement = Requirement
+                    .newRequirement(testcase.key, testcase.operator, testcase.values);
+            testcase.selector.addRequire(requirement);
+
+            Assert.assertEquals(testcase.selector.toString(), testcase.refSelector.toString());
+        }
+    }
+
+    @Test
+    public void testSafeSort() {
+        List<Fourth<String, List<String>, List<String>, List<String>>> testcases = new ArrayList<>();
+        {
+            testcases.add(new Fourth<>("nil strings", null, null, null));
+        }
+        {
+            testcases.add(new Fourth<>("ordered strings", Arrays.asList("bar", "foo"),
+                    Arrays.asList("bar", "foo"), Arrays.asList("bar", "foo")));
+        }
+        {
+            testcases.add(new Fourth<>("unordered strings", Arrays.asList("foo", "bar"),
+                    Arrays.asList("foo", "bar"), Arrays.asList("bar", "foo")));
+        }
+        {
+            testcases.add(new Fourth<>("duplicated strings",
+                    Arrays.asList("foo", "bar", "foo", "bar"),
+                    Arrays.asList("foo", "bar", "foo", "bar"),
+                    Arrays.asList("bar", "bar", "foo", "foo")));
+        }
+
+        for (Fourth<String, List<String>, List<String>, List<String>> testcase : testcases) {
+            List<String> got = Selector.safeSort(testcase.getSecond());
+            Assert.assertEquals(got, testcase.getFourth());
+            Assert.assertEquals(testcase.getSecond(), testcase.getThird());
+        }
+    }
+
 
 
 }

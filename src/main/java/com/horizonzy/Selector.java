@@ -1,9 +1,10 @@
 package com.horizonzy;
 
 
-import com.sun.xml.internal.fastinfoset.algorithm.IEEE754FloatingPointEncodingAlgorithm;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -94,6 +95,15 @@ public class Selector {
 
     public static void validateLabelValue(String key, String value) {
         Validation.isValidLabelValue(value);
+    }
+
+    public static List<String> safeSort(List<String> in) {
+        if (in == null) {
+            return null;
+        }
+        List<String> target = new ArrayList<>(in);
+        Collections.sort(target);
+        return target;
     }
 
 }

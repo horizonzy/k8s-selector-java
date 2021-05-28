@@ -8,9 +8,10 @@ import java.util.stream.Collectors;
 
 public class InternalSelector {
 
-    List<Requirement> requirementList = new ArrayList<>();
+    private List<Requirement> requirementList;
 
     public InternalSelector() {
+        requirementList = new ArrayList<>();
     }
 
     public void addRequire(Requirement requirement) {
