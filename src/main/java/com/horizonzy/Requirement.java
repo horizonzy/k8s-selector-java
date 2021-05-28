@@ -13,6 +13,10 @@ public class Requirement {
 
     private List<String> strValues;
 
+    private Requirement() {
+
+    }
+
     private Requirement(String key, String operator, List<String> strValues) {
         this.key = key;
         this.operator = operator;
@@ -147,47 +151,53 @@ public class Requirement {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-
         if (Operator.DoesNotExist.equals(operator)) {
             builder.append("!");
         }
-        builder.append(key);
-        switch (operator) {
-            case Operator.Equals:
-                builder.append("=");
-                break;
-            case Operator.DoubleEquals:
-                builder.append("==");
-                break;
-            case Operator.NotEquals:
-                builder.append("!=");
-                break;
-            case Operator.In:
-                builder.append(" in ");
-                break;
-            case Operator.NotIn:
-                builder.append(" notin ");
-                break;
-            case Operator.GreaterThan:
-                builder.append(">");
-                break;
-            case Operator.LessThan:
-                builder.append("<");
-                break;
-            case Operator.Exists:
-            case Operator.DoesNotExist:
-                return builder.toString();
+        if (key != null) {
+            builder.append(key);
+        }
+
+        if (operator != null) {
+            switch (operator) {
+                case Operator.Equals:
+                    builder.append("=");
+                    break;
+                case Operator.DoubleEquals:
+                    builder.append("==");
+                    break;
+                case Operator.NotEquals:
+                    builder.append("!=");
+                    break;
+                case Operator.In:
+                    builder.append(" in ");
+                    break;
+                case Operator.NotIn:
+                    builder.append(" notin ");
+                    break;
+                case Operator.GreaterThan:
+                    builder.append(">");
+                    break;
+                case Operator.LessThan:
+                    builder.append("<");
+                    break;
+                case Operator.Exists:
+                case Operator.DoesNotExist:
+                    return builder.toString();
+            }
         }
 
         if (Operator.In.equals(operator) || Operator.NotIn.equals(operator)) {
             builder.append("(");
         }
-        if (strValues.size() == 1) {
-            builder.append(strValues.get(0));
-        } else {
-            List<String> tmp = new ArrayList<>(strValues);
-            Collections.sort(tmp);
-            builder.append(String.join(",", tmp));
+        if (strValues != null) {
+            if (strValues.size() == 1) {
+                builder.append(strValues.get(0));
+            } else {
+                List<String> tmp = new ArrayList<>(strValues);
+                Collections.sort(tmp);
+                builder.append(String.join(",", tmp));
+            }
         }
 
         if (Operator.In.equals(operator) || Operator.NotIn.equals(operator)) {

@@ -1,5 +1,7 @@
 package com.horizonzy;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -465,7 +467,8 @@ public class SelectorTest {
     }
 
     @Test
-    public void testToString() throws IllegalAccessException, InstantiationException {
+    public void testToString()
+            throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
         List<Triple<InternalSelector, String, Boolean>> testcases = new ArrayList<>();
         {
             InternalSelector internalSelector = new InternalSelector();
@@ -486,6 +489,18 @@ public class SelectorTest {
             internalSelector.addRequire(getRequirement("z", Operator.DoesNotExist, null));
             testcases.add(new Triple<>(internalSelector, "x notin (abc,def),y!=jkl,!z", true));
 
+        }
+        {
+            InternalSelector internalSelector = new InternalSelector();
+            internalSelector
+                    .addRequire(getRequirement("x", Operator.In, Arrays.asList("abc", "def")));
+
+            Constructor<Requirement> constructor = Requirement.class.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            Requirement emptyRequirement = constructor.newInstance();
+            internalSelector.addRequire(emptyRequirement); // adding empty req for the trailing ','
+
+            testcases.add(new Triple<>(internalSelector, "x in (abc,def),", false));
         }
         {
             InternalSelector internalSelector = new InternalSelector();
@@ -532,9 +547,13 @@ public class SelectorTest {
 
     }
 
-
     private Requirement getRequirement(String key, String operator, List<String> values) {
         return Requirement.newRequirement(key, operator, values);
+    }
+
+    @Test
+    public void testRequirementSelectorMatching() {
+
     }
 
 
