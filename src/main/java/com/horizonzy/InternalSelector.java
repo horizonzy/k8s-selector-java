@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class InternalSelector {
 
@@ -35,8 +36,6 @@ public class InternalSelector {
 
     @Override
     public String toString() {
-        return "InternalSelector{" +
-                "requirementList=" + requirementList +
-                '}';
+        return requirementList.stream().map(Requirement::toString).collect(Collectors.joining(","));
     }
 }

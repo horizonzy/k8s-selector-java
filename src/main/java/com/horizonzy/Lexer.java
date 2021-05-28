@@ -7,6 +7,10 @@ public class Lexer {
 
     private int pos;
 
+    public Lexer(String s) {
+        this(s, 0);
+    }
+
     public Lexer(String s, int pos) {
         this.s = s;
         this.pos = pos;

@@ -27,7 +27,7 @@ public class Selector {
     }
 
     public static InternalSelector parse(String selector) {
-        Lexer lexer = new Lexer(selector, 0);
+        Lexer lexer = new Lexer(selector);
         Parser parser = new Parser(lexer);
         InternalSelector items = parser.parse();
         items.sort();
@@ -44,7 +44,7 @@ public class Selector {
         }
         InternalSelector internalSelector = new InternalSelector();
         for (Entry<String, String> entry : label.entrySet()) {
-            Requirement requirement = new Requirement(entry.getKey(), Operator.Equals,
+            Requirement requirement = Requirement.newRequirement(entry.getKey(), Operator.Equals,
                     Collections.singletonList(entry.getValue()));
             internalSelector.addRequire(requirement);
         }

@@ -18,8 +18,14 @@ public class Parser {
     }
 
     public Parser(Lexer lexer) {
-        this.lexer = lexer;
+        this(lexer, 0);
     }
+
+    public Parser(Lexer lexer, int position) {
+        this.lexer = lexer;
+        this.position = position;
+    }
+
 
     public Lexer getLexer() {
         return lexer;
@@ -73,7 +79,7 @@ public class Parser {
         return new Tuple<>(token, lit);
     }
 
-    private void scan() {
+    public void scan() {
         for (; ; ) {
             Tuple<Integer, String> tuple = lexer.lex();
             scannedItems.add(new ScannedItem(tuple.getKey(), tuple.getValue()));
@@ -127,7 +133,7 @@ public class Parser {
         String operator = tuple.getValue();
 
         if (Operator.Exists.equals(operator) || Operator.DoesNotExist.equals(operator)) {
-            return new Requirement(key, operator, Collections.EMPTY_LIST);
+            return Requirement.newRequirement(key, operator, Collections.emptyList());
         }
 
         operator = parseOperator();
@@ -201,7 +207,7 @@ public class Parser {
         }
     }
 
-    private Set<String> parseValues() {
+    public Set<String> parseValues() {
         Tuple<Integer, String> tuple = consume(ParseContext.Values);
         Integer token = tuple.getKey();
         String lit = tuple.getValue();
@@ -231,7 +237,7 @@ public class Parser {
 
     }
 
-    private Set<String> parseIdentifiersList() {
+    public Set<String> parseIdentifiersList() {
         Set<String> result = new HashSet<>();
 
         for (; ; ) {
@@ -273,7 +279,7 @@ public class Parser {
         }
     }
 
-    private Set<String> parseExactValue() {
+    public Set<String> parseExactValue() {
         Set<String> result = new HashSet<>();
 
         Tuple<Integer, String> tuple = lookAhead(ParseContext.Values);
