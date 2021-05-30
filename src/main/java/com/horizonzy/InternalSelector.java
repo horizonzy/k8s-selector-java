@@ -35,6 +35,22 @@ public class InternalSelector {
         return requirementList == null || requirementList.size() == 0;
     }
 
+    public Tuple<String, Boolean> requiresExactMatch(String label) {
+        for (Requirement requirement : requirementList) {
+            if (requirement.getKey().equals(label)) {
+                if (Operator.Equals.equals(requirement.getOperator()) || Operator.DoubleEquals
+                        .equals(requirement.getOperator()) || Operator.In
+                        .equals(requirement.getOperator())) {
+                    if (requirement.getStrValues().size() == 1) {
+                        return new Tuple<>(requirement.getStrValues().get(0), true);
+                    }
+                }
+                return new Tuple<>("", false);
+            }
+        }
+        return new Tuple<>("", false);
+    }
+
     @Override
     public String toString() {
         return requirementList.stream().map(Requirement::toString).collect(Collectors.joining(","));

@@ -936,6 +936,150 @@ public class SelectorTest {
         }
     }
 
+    @Test
+    public void benchmarkSelectorFromValidatedSet() {
+        Map<String, String> data = new HashMap<>();
+        data.put("foo", "foo");
+        data.put("bar", "bar");
 
+        for (int i = 0; i < 10000; i++) {
+            Selector.selectorFromValidatedSet(data);
+        }
+    }
+
+    @Test
+    public void testRequiresExactMatch() {
+        List<Fourth<InternalSelector, String, Boolean, String>> testcases = new ArrayList<>();
+        {
+            InternalSelector internalSelector = new InternalSelector();
+            internalSelector.addRequire(
+                    getRequirement("key", Operator.In, Collections.singletonList("value")));
+            testcases.add(new Fourth<>(internalSelector, "key", true, "value"));
+        }
+        {
+            InternalSelector internalSelector = new InternalSelector();
+            internalSelector.addRequire(
+                    getRequirement("key", Operator.In, Arrays.asList("value", "value2")));
+            testcases.add(new Fourth<>(internalSelector, "key", false, "value"));
+        }
+        {
+            InternalSelector internalSelector = new InternalSelector();
+            internalSelector.addRequire(
+                    getRequirement("key", Operator.In, Arrays.asList("value", "value1")));
+            internalSelector.addRequire(
+                    getRequirement("key2", Operator.In, Collections.singletonList("value2")));
+            testcases.add(new Fourth<>(internalSelector, "key2", true, "value2"));
+        }
+        {
+            InternalSelector internalSelector = new InternalSelector();
+            internalSelector.addRequire(
+                    getRequirement("key", Operator.Equals, Collections.singletonList("value")));
+            testcases.add(new Fourth<>(internalSelector, "key", true, "value"));
+        }
+        {
+            InternalSelector internalSelector = new InternalSelector();
+            internalSelector.addRequire(getRequirement("key", Operator.DoubleEquals,
+                    Collections.singletonList("value")));
+            testcases.add(new Fourth<>(internalSelector, "key", true, "value"));
+        }
+        {
+            InternalSelector internalSelector = new InternalSelector();
+            internalSelector.addRequire(
+                    getRequirement("key", Operator.NotEquals, Collections.singletonList("value")));
+            testcases.add(new Fourth<>(internalSelector, "key", false, ""));
+        }
+        {
+            InternalSelector internalSelector = new InternalSelector();
+            internalSelector.addRequire(
+                    getRequirement("key", Operator.In, Collections.singletonList("value")));
+            internalSelector.addRequire(
+                    getRequirement("key2", Operator.In, Collections.singletonList("value2")));
+            testcases.add(new Fourth<>(internalSelector, "key", true, "value"));
+        }
+        for (Fourth<InternalSelector, String, Boolean, String> testcase : testcases) {
+            Tuple<String, Boolean> tuple = testcase.getFirst()
+                    .requiresExactMatch(testcase.getSecond());
+            Assert.assertEquals(tuple.getValue(), testcase.getThird());
+            if (tuple.getValue()) {
+                Assert.assertEquals(tuple.getKey(), testcase.getFourth());
+            }
+        }
+    }
+
+    @Test
+    public void testValidatedSelectorFromSet() {
+        List<Triple<Map<String, String>, InternalSelector, Class<? extends Throwable>>> testcases = new ArrayList<>();
+        {
+            Map<String, String> input = new HashMap<>();
+            input.put("key", "val");
+
+            InternalSelector internalSelector = new InternalSelector();
+            internalSelector.addRequire(
+                    getRequirement("key", Operator.Equals, Collections.singletonList("val")));
+            testcases.add(new Triple<>(input, internalSelector, null));
+        }
+        {
+            Map<String, String> input = new HashMap<>();
+            input.put("Key", "axahm2EJ8Phiephe2eixohbee9eGeiyees1thuozi1xoh0GiuH3diewi8iem7Nui");
+
+            testcases.add(new Triple<>(input, null, IllegalArgumentException.class));
+        }
+
+        for (Triple<Map<String, String>, InternalSelector, Class<? extends Throwable>> testcase : testcases) {
+            InternalSelector internalSelector = null;
+            boolean isException = false;
+            try {
+                internalSelector = Selector.selectorFromValidatedSet(testcase.getFirst());
+            } catch (IllegalArgumentException e) {
+                isException = true;
+            }
+            if (isException) {
+                Assert.assertEquals(testcase.getThird(), IllegalArgumentException.class);
+            } else {
+                Assert.assertEquals(internalSelector.toString(), testcase.getSecond().toString());
+            }
+        }
+    }
+
+    @Test
+    public void testRequirementEqual() {
+        List<Triple<Requirement, Requirement, Boolean>> testcases = new ArrayList<>();
+        {
+            Requirement oneRequirement = Requirement
+                    .newRequirement("key", Operator.In, Arrays.asList("foo", "bar"));
+
+            Requirement secondRequirement = Requirement
+                    .newRequirement("key", Operator.In, Arrays.asList("foo", "bar"));
+
+            testcases.add(new Triple<>(oneRequirement, secondRequirement, true));
+        }
+        {
+            Requirement oneRequirement = Requirement
+                    .newRequirement("key1", Operator.In, Arrays.asList("foo", "bar"));
+
+            Requirement secondRequirement = Requirement
+                    .newRequirement("key2", Operator.In, Arrays.asList("foo", "bar"));
+
+            testcases.add(new Triple<>(oneRequirement, secondRequirement, false));
+        }
+        {
+            Requirement oneRequirement = Requirement
+                    .newRequirement("key", Operator.In, Arrays.asList("foo", "bar"));
+            Requirement secondRequirement = Requirement
+                    .newRequirement("key", Operator.NotIn, Arrays.asList("foo", "bar"));
+            testcases.add(new Triple<>(oneRequirement, secondRequirement, false));
+        }
+        {
+            Requirement oneRequirement = Requirement
+                    .newRequirement("key", Operator.In, Arrays.asList("foo", "bar"));
+            Requirement secondRequirement = Requirement
+                    .newRequirement("key", Operator.In, Collections.singletonList("foobar"));
+            testcases.add(new Triple<>(oneRequirement, secondRequirement, false));
+        }
+
+        for (Triple<Requirement, Requirement, Boolean> testcase : testcases) {
+            Assert.assertEquals(testcase.getFirst().toString().equals(testcase.getSecond().toString()), testcase.getThird());
+        }
+    }
 
 }
