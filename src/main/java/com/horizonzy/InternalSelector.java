@@ -51,6 +51,10 @@ public class InternalSelector {
         return new Tuple<>("", false);
     }
 
+    public List<Requirement> getRequirementList() {
+        return requirementList;
+    }
+
     @Override
     public String toString() {
         return requirementList.stream().map(Requirement::toString).collect(Collectors.joining(","));
