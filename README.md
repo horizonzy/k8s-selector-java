@@ -5,7 +5,7 @@ This is k8s-label-selector tool in java, it provider same function as [k8s-label
 
 ```
 #java
-Map<String, String> labels = new HashMap();
+Map<String, String> labels = new HashMap<>();
 labels.put("tier", "backend");
 labels.put("environment", "production");
 
