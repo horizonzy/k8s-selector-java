@@ -12,8 +12,8 @@ labels.put("environment", "production");
 InternalSelector selector = Selector.parse("environment = production");
 Assert.assertTrue(selector.matches(labels));
 
-InternalSelector selector = Selector.parse("environment = qa");
-Assert.assertFalse(selector.matches(labels));
+InternalSelector selector1 = Selector.parse("environment = qa");
+Assert.assertFalse(selector1.matches(labels));
 ``` 
 
 # Verification
