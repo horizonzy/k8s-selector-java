@@ -1,5 +1,5 @@
 # k8s-selector-java
-This is k8s-label-selector tool based on jdk in java, it provider same function as [k8s-label-selector](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/)
+This is k8s-label-selector tool based on jdk in java, it provide same function as [k8s-label-selector](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/)
 
 ## How to use it
 
