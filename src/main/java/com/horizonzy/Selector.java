@@ -93,7 +93,7 @@ public class Selector {
         Validation.isQualifiedName(key);
     }
 
-    public static void validateLabelValue(String key, String value) {
+    public static void validateLabelValue(String value) {
         Validation.isValidLabelValue(value);
     }
 

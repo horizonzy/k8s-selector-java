@@ -147,7 +147,7 @@ public class Requirement {
                 throw new IllegalArgumentException("not supported current operator:" + operator);
         }
         for (String val : vals) {
-            Selector.validateLabelValue(key, val);
+            Selector.validateLabelValue(val);
         }
         return new Requirement(key, operator, vals);
     }
