@@ -18,8 +18,8 @@ public class Lexer {
 
     public byte read() {
         byte b = 0;
-        if (this.pos < s.length()) {
-            b = (byte) s.charAt(pos);
+        if (this.pos < s.getBytes().length) {
+            b = s.getBytes()[pos];
             pos++;
         }
         return b;
@@ -30,7 +30,7 @@ public class Lexer {
     }
 
     public Tuple<Integer, String> scanIDOrKeyword() {
-        byte[] buffer = new byte[s.length()];
+        byte[] buffer = new byte[s.getBytes().length];
         int index = 0;
         for (; ; ) {
             byte ch = read();
@@ -54,7 +54,7 @@ public class Lexer {
 
     public Tuple<Integer, String> scanSpecialSymbol() {
         ScannedItem lastScannedItem = new ScannedItem();
-        byte[] buffer = new byte[s.length()];
+        byte[] buffer = new byte[s.getBytes().length];
         int index = 0;
 
         for (; ; ) {
